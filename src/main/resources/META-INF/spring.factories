@@ -1,0 +1,5 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.tianyalei.zuul.zuulauth.config.ClientAuthCacheConfigure,\
+com.tianyalei.zuul.zuulauth.config.RedisContainerConfigure,\
+com.tianyalei.zuul.zuulauth.config.RedisTemplateConfigure,\
+com.tianyalei.zuul.zuulauth.config.ZuulAuthConfigure    
