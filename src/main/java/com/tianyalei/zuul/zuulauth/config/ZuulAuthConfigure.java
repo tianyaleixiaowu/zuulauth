@@ -1,6 +1,7 @@
 package com.tianyalei.zuul.zuulauth.config;
 
 import com.tianyalei.zuul.zuulauth.ZuulAuth;
+import com.tianyalei.zuul.zuulauth.config.properties.ZuulAuthFetchDurationProperties;
 import com.tianyalei.zuul.zuulauth.zuul.AuthChecker;
 import com.tianyalei.zuul.zuulauth.zuul.AuthInfoHolder;
 import org.slf4j.Logger;
@@ -8,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.netflix.zuul.ZuulProxyMarkerConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,12 +19,12 @@ import org.springframework.data.redis.core.RedisTemplate;
 import javax.annotation.Resource;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author wuweifeng wrote on 2019-08-13.
  */
 @Configuration
+@EnableConfigurationProperties(ZuulAuthFetchDurationProperties.class)
 @ConditionalOnMissingBean(ZuulAuthConfigure.class)
 @ConditionalOnBean(ZuulProxyMarkerConfiguration.class) //这一句是当前工程是zuul工程时，才启用该configuration
 public class ZuulAuthConfigure {
@@ -30,6 +32,9 @@ public class ZuulAuthConfigure {
 
     @Resource
     private RedisTemplate<String, String> redisTemplate;
+
+    @Resource
+    private ZuulAuthFetchDurationProperties properties;
 
     @Bean
     @ConditionalOnMissingBean
@@ -54,15 +59,21 @@ public class ZuulAuthConfigure {
         logger.info(AuthInfoHolder.keys().toString());
         logger.info("拉取完毕");
 
-        scheduleFetchMappingInfo();
+        ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(3);
+        if (properties.getMappingFetch() > 0) {
+            scheduledExecutor.scheduleAtFixedRate(() -> AuthInfoHolder.saveAllMappingInfo(redisTemplate),
+                    properties.getDelay(), properties.getMappingFetch(), properties.getTimeUnit());
+        }
+        if (properties.getRoleFetch() > 0) {
+            scheduledExecutor.scheduleAtFixedRate(() -> AuthInfoHolder.saveAllUserRole(redisTemplate),
+                    properties.getDelay(), properties.getMappingFetch(), properties.getTimeUnit());
+        }
+        if (properties.getCodeFetch() > 0) {
+            scheduledExecutor.scheduleAtFixedRate(() -> AuthInfoHolder.saveAllRoleCode(redisTemplate),
+                    properties.getDelay(), properties.getMappingFetch(), properties.getTimeUnit());
+        }
+
+        scheduledExecutor.shutdown();
     }
 
-    /**
-     * 起一个定时任务，每隔5分钟去获取一次所有服务的mappingInfo
-     */
-    private void scheduleFetchMappingInfo() {
-        logger.info("开启定时5分钟拉取一次mappingInfo");
-        ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
-        scheduledExecutor.scheduleAtFixedRate(() -> AuthInfoHolder.saveAllMappingInfo(redisTemplate), 5, 5, TimeUnit.MINUTES);
-    }
 }

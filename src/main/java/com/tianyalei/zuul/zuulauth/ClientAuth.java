@@ -87,7 +87,7 @@ public class ClientAuth {
             //取到具体的接口方法，方法上的会覆盖类上的
             Method method = handlerMethod.getMethod();
             if (method.isAnnotationPresent(RequireRoles.class)) {
-                RequireRoles role = (RequireRoles) c.getAnnotation(RequireRoles.class);
+                RequireRoles role = method.getAnnotation(RequireRoles.class);
                 String[] needRole = role.value();
                 if (needRole.length > 0) {
                     //清除默认继承来自类上的角色
@@ -97,7 +97,7 @@ public class ClientAuth {
                 methodAuthBean.setRolesLogical(role.logical());
             }
             if (method.isAnnotationPresent(RequireCodes.class)) {
-                RequireCodes codes = (RequireCodes) c.getAnnotation(RequireCodes.class);
+                RequireCodes codes = method.getAnnotation(RequireCodes.class);
                 String[] needCodes = codes.value();
                 if (needCodes.length > 0) {
                     //清除默认继承来自类上的权限信息
