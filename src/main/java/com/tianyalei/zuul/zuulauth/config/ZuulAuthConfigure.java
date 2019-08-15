@@ -73,7 +73,6 @@ public class ZuulAuthConfigure {
                     properties.getDelay(), properties.getMappingFetch(), properties.getTimeUnit());
         }
 
-        scheduledExecutor.shutdown();
     }
 
 }
