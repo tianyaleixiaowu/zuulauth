@@ -67,50 +67,59 @@ public class AuthInfoHolder {
         return (List<String>) objects.get(0);
     }
 
+    /**
+     * 获取对应的hash下所有的keys
+     */
+    private static List<Object> keys(String key, RedisTemplate<String, String> redisTemplate) {
+        Set<Object> strings = redisTemplate.opsForHash().keys(key);
+        if (strings.size() == 0) {
+            return null;
+        }
+        return new ArrayList<>(strings);
+    }
+
+    /**
+     * 拉取并保存redis里所有的mapping
+     */
     public static void saveAllMappingInfo(RedisTemplate<String, String> redisTemplate) {
         //所有的key
-        Set<Object> strings = redisTemplate.opsForHash().keys(CLIENT_REQUEST_MAPPING_HASH_KEY);
-        if (strings.size() == 0) {
-            return;
-        }
-        List<Object> keyList = new ArrayList<>(strings);
-        //从redis拉回所有的value
-        List<String> valueList = multiGet(CLIENT_REQUEST_MAPPING_HASH_KEY, keyList, redisTemplate);
+        List<Object> keyList = keys(CLIENT_REQUEST_MAPPING_HASH_KEY, redisTemplate);
+        if (keyList != null) {
+            //从redis拉回所有的value
+            List<String> valueList = multiGet(CLIENT_REQUEST_MAPPING_HASH_KEY, keyList, redisTemplate);
 
-        CLIENT_REQUEST_MAPPING_MAP.clear();
-        for (int i = 0; i < keyList.size(); i++) {
-            List<MethodAuthBean> list = FastJsonUtils.toList(valueList.get(i), MethodAuthBean.class);
-            CLIENT_REQUEST_MAPPING_MAP.put(keyList.get(0).toString(), list);
+            CLIENT_REQUEST_MAPPING_MAP.clear();
+            for (int i = 0; i < keyList.size(); i++) {
+                List<MethodAuthBean> list = FastJsonUtils.toList(valueList.get(i), MethodAuthBean.class);
+                CLIENT_REQUEST_MAPPING_MAP.put(keyList.get(0).toString(), list);
+            }
         }
+       
     }
 
     public static void saveAllUserRole(RedisTemplate<String, String> redisTemplate) {
-        Set<Object> strings = redisTemplate.opsForHash().keys(USER_ROLE_HASH_KEY);
-        if (strings.size() == 0) {
-            return;
-        }
-        List<Object> keyList = new ArrayList<>(strings);
-        List<String> valueList = multiGet(USER_ROLE_HASH_KEY, keyList, redisTemplate);
+        List<Object> keyList = keys(USER_ROLE_HASH_KEY, redisTemplate);
+        if (keyList != null) {
+            List<String> valueList = multiGet(USER_ROLE_HASH_KEY, keyList, redisTemplate);
 
-        USER_ROLE_MAP.clear();
-        for (int i = 0; i < keyList.size(); i++) {
-            Set set = FastJsonUtils.toBean(valueList.get(i), Set.class);
-            USER_ROLE_MAP.put(keyList.get(0).toString(), set);
+            USER_ROLE_MAP.clear();
+            for (int i = 0; i < keyList.size(); i++) {
+                Set set = FastJsonUtils.toBean(valueList.get(i), Set.class);
+                USER_ROLE_MAP.put(keyList.get(0).toString(), set);
+            }
         }
     }
 
     public static void saveAllRoleCode(RedisTemplate<String, String> redisTemplate) {
-        Set<Object> strings = redisTemplate.opsForHash().keys(ROLE_PERMISSION_HASH_KEY);
-        if (strings.size() == 0) {
-            return;
-        }
-        List<Object> keyList = new ArrayList<>(strings);
-        List<String> valueList = multiGet(ROLE_PERMISSION_HASH_KEY, keyList, redisTemplate);
+        List<Object> keyList = keys(ROLE_PERMISSION_HASH_KEY, redisTemplate);
+        if (keyList != null) {
+            List<String> valueList = multiGet(ROLE_PERMISSION_HASH_KEY, keyList, redisTemplate);
 
-        ROLE_PERMISSION_MAP.clear();
-        for (int i = 0; i < keyList.size(); i++) {
-            Set set = FastJsonUtils.toBean(valueList.get(i), Set.class);
-            ROLE_PERMISSION_MAP.put(keyList.get(0).toString(), set);
+            ROLE_PERMISSION_MAP.clear();
+            for (int i = 0; i < keyList.size(); i++) {
+                Set set = FastJsonUtils.toBean(valueList.get(i), Set.class);
+                ROLE_PERMISSION_MAP.put(keyList.get(0).toString(), set);
+            }
         }
     }
 
