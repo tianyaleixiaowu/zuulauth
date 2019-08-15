@@ -30,6 +30,9 @@ public class AuthInfoHolder {
         return CLIENT_REQUEST_MAPPING_MAP.keySet();
     }
 
+    /**
+     * 这一步是zuul端调用的，根据请求的服务名获取app的所有映射信息
+     */
     public static List<MethodAuthBean> findByAppName(String appName) {
         //  [{
         //        "actions": [

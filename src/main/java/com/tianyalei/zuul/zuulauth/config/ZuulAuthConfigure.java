@@ -15,6 +15,9 @@ import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import javax.annotation.Resource;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author wuweifeng wrote on 2019-08-13.
@@ -50,5 +53,16 @@ public class ZuulAuthConfigure {
         zuulAuth().init();
         logger.info(AuthInfoHolder.keys().toString());
         logger.info("拉取完毕");
+
+        scheduleFetchMappingInfo();
+    }
+
+    /**
+     * 起一个定时任务，每隔5分钟去获取一次所有服务的mappingInfo
+     */
+    private void scheduleFetchMappingInfo() {
+        logger.info("开启定时5分钟拉取一次mappingInfo");
+        ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+        scheduledExecutor.scheduleAtFixedRate(() -> AuthInfoHolder.saveAllMappingInfo(redisTemplate), 5, 5, TimeUnit.MINUTES);
     }
 }
