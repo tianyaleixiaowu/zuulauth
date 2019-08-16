@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.netflix.zuul.ZuulProxyMarkerConfiguration;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
@@ -35,6 +36,9 @@ public class ZuulAuthConfigure {
     @Resource
     private ZuulAuthFetchDurationProperties properties;
 
+    @Resource
+    private ApplicationContext applicationContext;
+
     @Bean
     @ConditionalOnMissingBean
     AuthInfoHolder authInfoHolder() {
@@ -44,7 +48,7 @@ public class ZuulAuthConfigure {
     @Bean
     @ConditionalOnMissingBean
     AuthChecker authChecker() {
-        return new AuthChecker(authInfoHolder());
+        return new AuthChecker(applicationContext);
     }
 
     /**
