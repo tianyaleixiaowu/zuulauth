@@ -27,10 +27,10 @@ public class AuthInfoHolder {
     /**
      * key是服务的名字，value是该服务的各接口权限集合
      */
-    private static final ConcurrentHashMap<String, List<MethodAuthBean>> CLIENT_REQUEST_MAPPING_MAP =
+    private final ConcurrentHashMap<String, List<MethodAuthBean>> CLIENT_REQUEST_MAPPING_MAP =
             new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<String, Set<String>> USER_ROLE_MAP = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<String, Set<String>> ROLE_PERMISSION_MAP =
+    private final ConcurrentHashMap<String, Set<String>> USER_ROLE_MAP = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Set<String>> ROLE_PERMISSION_MAP =
             new ConcurrentHashMap<>();
 
 

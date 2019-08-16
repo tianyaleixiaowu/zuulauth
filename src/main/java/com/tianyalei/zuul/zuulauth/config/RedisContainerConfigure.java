@@ -1,6 +1,7 @@
 package com.tianyalei.zuul.zuulauth.config;
 
 import com.tianyalei.zuul.zuulauth.tool.Constant;
+import com.tianyalei.zuul.zuulauth.zuul.AuthInfoHolder;
 import com.tianyalei.zuul.zuulauth.zuul.listener.ChannelMessageListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,8 @@ public class RedisContainerConfigure {
 
     @Resource
     private RedisTemplate<String, String> redisTemplate;
+    @Resource
+    private AuthInfoHolder authInfoHolder;
 
     @Bean
     RedisMessageListenerContainer container(RedisConnectionFactory connectionFactory,
@@ -51,21 +54,21 @@ public class RedisContainerConfigure {
      */
     @Bean("clientRequestMappingListenerAdapter")
     MessageListenerAdapter clientRequestMappingListenerAdapter() {
-        ChannelMessageListener channelMessageListener = new ChannelMessageListener(redisTemplate);
+        ChannelMessageListener channelMessageListener = new ChannelMessageListener(authInfoHolder);
         //这个地方 是给messageListenerAdapter 传入一个消息接受的处理器，利用反射的方法调用“MessageReceiveTwo ”
         return new MessageListenerAdapter(channelMessageListener, "listenMappingEvent");
     }
 
     @Bean("userRoleListenerAdapter")
     MessageListenerAdapter userRoleListenerAdapter() {
-        ChannelMessageListener channelMessageListener = new ChannelMessageListener(redisTemplate);
+        ChannelMessageListener channelMessageListener = new ChannelMessageListener(authInfoHolder);
         //这个地方 是给messageListenerAdapter 传入一个消息接受的处理器，利用反射的方法调用“MessageReceiveTwo ”
         return new MessageListenerAdapter(channelMessageListener, "listenUserRoleEvent");
     }
 
     @Bean("rolePermissionListenerAdapter")
     MessageListenerAdapter rolePermissionListenerAdapter() {
-        ChannelMessageListener channelMessageListener = new ChannelMessageListener(redisTemplate);
+        ChannelMessageListener channelMessageListener = new ChannelMessageListener(authInfoHolder);
         //这个地方 是给messageListenerAdapter 传入一个消息接受的处理器，利用反射的方法调用“MessageReceiveTwo ”
         return new MessageListenerAdapter(channelMessageListener, "listenRolePermissionEvent");
     }

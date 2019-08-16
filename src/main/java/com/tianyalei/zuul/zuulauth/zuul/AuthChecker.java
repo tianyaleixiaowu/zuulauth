@@ -15,6 +15,12 @@ import java.util.regex.Pattern;
  * @author wuweifeng wrote on 2019/8/12.
  */
 public class AuthChecker {
+    private AuthInfoHolder authInfoHolder;
+
+    public AuthChecker(AuthInfoHolder authInfoHolder) {
+        this.authInfoHolder = authInfoHolder;
+    }
+
     public static final int CODE_OK = 0;
     /**
      * 不存在该服务的mapping信息
@@ -60,7 +66,7 @@ public class AuthChecker {
     public int check(String appName, String method, String path, Set<String> userRoles, Set<String>
             userCodes) {
         //所有的映射信息
-        List<MethodAuthBean> list = AuthInfoHolder.findByAppName(appName);
+        List<MethodAuthBean> list = authInfoHolder.findByAppName(appName);
         if (list == null) {
             return CODE_NO_APP;
         }

@@ -44,7 +44,7 @@ public class ZuulAuthConfigure {
     @Bean
     @ConditionalOnMissingBean
     AuthChecker authChecker() {
-        return new AuthChecker();
+        return new AuthChecker(authInfoHolder());
     }
 
     /**
