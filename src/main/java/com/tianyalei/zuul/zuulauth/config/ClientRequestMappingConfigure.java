@@ -1,6 +1,6 @@
 package com.tianyalei.zuul.zuulauth.config;
 
-import com.tianyalei.zuul.zuulauth.ClientAuth;
+import com.tianyalei.zuul.zuulauth.ClientStarter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -26,8 +26,8 @@ public class ClientRequestMappingConfigure {
 
     @Bean
     @ConditionalOnMissingBean
-    ClientAuth clientAuth() {
-        return new ClientAuth(applicationContext);
+    ClientStarter clientAuth() {
+        return new ClientStarter(applicationContext);
     }
 
     /**

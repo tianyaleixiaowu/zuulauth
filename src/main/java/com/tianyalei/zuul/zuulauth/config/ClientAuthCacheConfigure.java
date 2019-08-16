@@ -1,6 +1,6 @@
 package com.tianyalei.zuul.zuulauth.config;
 
-import com.tianyalei.zuul.zuulauth.zuul.AuthCache;
+import com.tianyalei.zuul.zuulauth.cache.AuthCache;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

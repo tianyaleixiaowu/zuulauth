@@ -3,25 +3,24 @@ package com.tianyalei.zuul.zuulauth.zuul.listener;
 import com.tianyalei.zuul.zuulauth.zuul.AuthInfoHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.redis.core.RedisTemplate;
 
 /**
  * 订阅的频道(客户端mapping变化)发生变化会调用该方法
  * @author wuweifeng wrote on 2019/8/12.
  */
 public class ChannelMessageListener {
-    public ChannelMessageListener(RedisTemplate<String, String> redisTemplate) {
-        this.redisTemplate = redisTemplate;
+    public ChannelMessageListener(AuthInfoHolder authInfoHolder) {
+        this.authInfoHolder = authInfoHolder;
     }
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
-    private RedisTemplate<String, String> redisTemplate;
+    private AuthInfoHolder authInfoHolder;
 
     public void listenMappingEvent(String appName) {
         logger.info("收到映射(新建/变更)消息，来自于：<" + appName + ">服务");
 
-        AuthInfoHolder.saveMappingInfo(appName, redisTemplate);
+        authInfoHolder.saveMappingInfo(appName);
 
         logger.info("<" + appName + ">服务的权限变更完毕");
     }
@@ -29,7 +28,7 @@ public class ChannelMessageListener {
     public void listenUserRoleEvent(String userKey) {
         logger.info("收到user-role(新建/变更)消息，userKey：<" + userKey + ">");
 
-        AuthInfoHolder.saveUserRoleInfo(userKey, redisTemplate);
+        authInfoHolder.saveUserRoleInfo(userKey);
 
         logger.info("<" + userKey + ">服务的权限变更完毕");
     }
@@ -37,7 +36,7 @@ public class ChannelMessageListener {
     public void listenRolePermissionEvent(String roleKey) {
         logger.info("收到role-permission(新建/变更)消息，roleKey：<" + roleKey + ">");
 
-        AuthInfoHolder.saveRolePermissionInfo(roleKey, redisTemplate);
+        authInfoHolder.saveRolePermissionInfo(roleKey);
 
         logger.info("<" + roleKey + ">服务的权限变更完毕");
     }

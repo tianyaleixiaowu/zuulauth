@@ -11,14 +11,19 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 保存各客户端的地址映射信息、userRole信息、roleCode信息
+ * 保存各客户端的地址映射信息、userRole信息、roleCode信息，信息都存在zuul的内存里
  *
  * @author wuweifeng wrote on 2019/8/12.
  */
 public class AuthInfoHolder {
+    private RedisTemplate<String, String> redisTemplate;
+    public AuthInfoHolder (RedisTemplate<String, String> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
+
     public static final String CLIENT_REQUEST_MAPPING_HASH_KEY = "client_request_mapping_hash_key";
-    static final String USER_ROLE_HASH_KEY = "user_role_hash_key";
-    static final String ROLE_PERMISSION_HASH_KEY = "role_permission_hash_key";
+    public static final String USER_ROLE_HASH_KEY = "user_role_hash_key";
+    public static final String ROLE_PERMISSION_HASH_KEY = "role_permission_hash_key";
     /**
      * key是服务的名字，value是该服务的各接口权限集合
      */
@@ -28,14 +33,15 @@ public class AuthInfoHolder {
     private static final ConcurrentHashMap<String, Set<String>> ROLE_PERMISSION_MAP =
             new ConcurrentHashMap<>();
 
-    public static Set<String> keys() {
+
+    public Set<String> keys() {
         return CLIENT_REQUEST_MAPPING_MAP.keySet();
     }
 
     /**
      * 这一步是zuul端调用的，根据请求的服务名获取app的所有映射信息
      */
-    public static List<MethodAuthBean> findByAppName(String appName) {
+    public List<MethodAuthBean> findByAppName(String appName) {
         //  [{
         //        "actions": [
         //            "POST"
@@ -54,8 +60,7 @@ public class AuthInfoHolder {
         return CLIENT_REQUEST_MAPPING_MAP.get(appName);
     }
 
-    private static List<String> multiGet(String key, List<Object> keyList,
-                                         RedisTemplate<String, String> redisTemplate) {
+    private List<String> multiGet(String key, List<Object> keyList) {
         //这一步通过pipeLine获取所有的values，会被封装为一个List<List<Object>>对象返回，内层的list就是对应的各个value
         List<Object> objects = redisTemplate.executePipelined(new SessionCallback<Object>() {
             @Override
@@ -70,7 +75,7 @@ public class AuthInfoHolder {
     /**
      * 获取对应的hash下所有的keys
      */
-    private static List<Object> keys(String key, RedisTemplate<String, String> redisTemplate) {
+    private List<Object> keys(String key) {
         Set<Object> strings = redisTemplate.opsForHash().keys(key);
         if (strings.size() == 0) {
             return null;
@@ -81,12 +86,12 @@ public class AuthInfoHolder {
     /**
      * 拉取并保存redis里所有的mapping
      */
-    public static void saveAllMappingInfo(RedisTemplate<String, String> redisTemplate) {
+    public void saveAllMappingInfo() {
         //所有的key
-        List<Object> keyList = keys(CLIENT_REQUEST_MAPPING_HASH_KEY, redisTemplate);
+        List<Object> keyList = keys(CLIENT_REQUEST_MAPPING_HASH_KEY);
         if (keyList != null) {
             //从redis拉回所有的value
-            List<String> valueList = multiGet(CLIENT_REQUEST_MAPPING_HASH_KEY, keyList, redisTemplate);
+            List<String> valueList = multiGet(CLIENT_REQUEST_MAPPING_HASH_KEY, keyList);
 
             CLIENT_REQUEST_MAPPING_MAP.clear();
             for (int i = 0; i < keyList.size(); i++) {
@@ -97,10 +102,10 @@ public class AuthInfoHolder {
        
     }
 
-    public static void saveAllUserRole(RedisTemplate<String, String> redisTemplate) {
-        List<Object> keyList = keys(USER_ROLE_HASH_KEY, redisTemplate);
+    public void saveAllUserRole() {
+        List<Object> keyList = keys(USER_ROLE_HASH_KEY);
         if (keyList != null) {
-            List<String> valueList = multiGet(USER_ROLE_HASH_KEY, keyList, redisTemplate);
+            List<String> valueList = multiGet(USER_ROLE_HASH_KEY, keyList);
 
             USER_ROLE_MAP.clear();
             for (int i = 0; i < keyList.size(); i++) {
@@ -110,10 +115,10 @@ public class AuthInfoHolder {
         }
     }
 
-    public static void saveAllRoleCode(RedisTemplate<String, String> redisTemplate) {
-        List<Object> keyList = keys(ROLE_PERMISSION_HASH_KEY, redisTemplate);
+    public void saveAllRoleCode() {
+        List<Object> keyList = keys(ROLE_PERMISSION_HASH_KEY);
         if (keyList != null) {
-            List<String> valueList = multiGet(ROLE_PERMISSION_HASH_KEY, keyList, redisTemplate);
+            List<String> valueList = multiGet(ROLE_PERMISSION_HASH_KEY, keyList);
 
             ROLE_PERMISSION_MAP.clear();
             for (int i = 0; i < keyList.size(); i++) {
@@ -126,7 +131,7 @@ public class AuthInfoHolder {
     /**
      * 将redis里的mapping拉入本地内存
      */
-    public static void saveMappingInfo(String appName, RedisTemplate<String, String> redisTemplate) {
+    public void saveMappingInfo(String appName) {
         String authStr = (String) redisTemplate.opsForHash().get(CLIENT_REQUEST_MAPPING_HASH_KEY, appName);
         List<MethodAuthBean> list = FastJsonUtils.toList(authStr, MethodAuthBean.class);
 
@@ -136,7 +141,7 @@ public class AuthInfoHolder {
     /**
      * 将redis里的user-role拉入本地内存
      */
-    public static void saveUserRoleInfo(String userKey, RedisTemplate<String, String> redisTemplate) {
+    public void saveUserRoleInfo(String userKey) {
         String userRoles = (String) redisTemplate.opsForHash().get(USER_ROLE_HASH_KEY, userKey);
         //说明user被删
         if (userRoles == null) {
@@ -148,7 +153,7 @@ public class AuthInfoHolder {
         USER_ROLE_MAP.put(userKey, set);
     }
 
-    public static void saveRolePermissionInfo(String roleKey, RedisTemplate<String, String> redisTemplate) {
+    public void saveRolePermissionInfo(String roleKey) {
         String rolePermi = (String) redisTemplate.opsForHash().get(ROLE_PERMISSION_HASH_KEY, roleKey);
         //说明role被删
         if (rolePermi == null) {
@@ -160,11 +165,11 @@ public class AuthInfoHolder {
         ROLE_PERMISSION_MAP.put(roleKey, set);
     }
 
-    public static Set<String> findByRole(String roleKey) {
+    public Set<String> findByRole(String roleKey) {
         return ROLE_PERMISSION_MAP.get(roleKey);
     }
 
-    public static Set<String> findByUser(String userKey) {
+    public Set<String> findByUser(String userKey) {
         return USER_ROLE_MAP.get(userKey);
     }
 }

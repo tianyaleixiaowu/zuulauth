@@ -1,6 +1,5 @@
 package com.tianyalei.zuul.zuulauth.config;
 
-import com.tianyalei.zuul.zuulauth.ZuulAuth;
 import com.tianyalei.zuul.zuulauth.config.properties.ZuulAuthFetchDurationProperties;
 import com.tianyalei.zuul.zuulauth.zuul.AuthChecker;
 import com.tianyalei.zuul.zuulauth.zuul.AuthInfoHolder;
@@ -38,8 +37,8 @@ public class ZuulAuthConfigure {
 
     @Bean
     @ConditionalOnMissingBean
-    ZuulAuth zuulAuth() {
-        return new ZuulAuth(redisTemplate);
+    AuthInfoHolder authInfoHolder() {
+        return new AuthInfoHolder(redisTemplate);
     }
 
     @Bean
@@ -55,21 +54,23 @@ public class ZuulAuthConfigure {
     public void init() {
         logger.info("开始拉取所有客户端mapping信息");
         //拉取mapping信息
-        zuulAuth().init();
-        logger.info(AuthInfoHolder.keys().toString());
+        AuthInfoHolder authInfoHolder = authInfoHolder();
+        authInfoHolder.saveAllMappingInfo();
+
+        logger.info(authInfoHolder.keys().toString());
         logger.info("拉取完毕");
 
         ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(3);
         if (properties.getMappingFetch() > 0) {
-            scheduledExecutor.scheduleAtFixedRate(() -> AuthInfoHolder.saveAllMappingInfo(redisTemplate),
+            scheduledExecutor.scheduleAtFixedRate(authInfoHolder::saveAllMappingInfo,
                     properties.getDelay(), properties.getMappingFetch(), properties.getTimeUnit());
         }
         if (properties.getRoleFetch() > 0) {
-            scheduledExecutor.scheduleAtFixedRate(() -> AuthInfoHolder.saveAllUserRole(redisTemplate),
+            scheduledExecutor.scheduleAtFixedRate(authInfoHolder::saveAllUserRole,
                     properties.getDelay(), properties.getMappingFetch(), properties.getTimeUnit());
         }
         if (properties.getCodeFetch() > 0) {
-            scheduledExecutor.scheduleAtFixedRate(() -> AuthInfoHolder.saveAllRoleCode(redisTemplate),
+            scheduledExecutor.scheduleAtFixedRate(authInfoHolder::saveAllRoleCode,
                     properties.getDelay(), properties.getMappingFetch(), properties.getTimeUnit());
         }
 

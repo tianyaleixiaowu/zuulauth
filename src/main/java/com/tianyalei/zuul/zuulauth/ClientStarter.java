@@ -31,10 +31,10 @@ import static com.tianyalei.zuul.zuulauth.zuul.AuthInfoHolder.CLIENT_REQUEST_MAP
  *
  * @author wuweifeng wrote on 2019/8/9.
  */
-public class ClientAuth {
+public class ClientStarter {
     private ApplicationContext applicationContext;
 
-    public ClientAuth(ApplicationContext applicationContext) {
+    public ClientStarter(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 
