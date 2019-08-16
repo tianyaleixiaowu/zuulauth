@@ -161,17 +161,15 @@ import com.tianyalei.zuul.zuulauth.zuul.AuthInfoHolder;
 import io.jsonwebtoken.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cloud.netflix.zuul.filters.Route;
-import org.springframework.cloud.netflix.zuul.filters.RouteLocator;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 import java.util.Set;
 
-import static com.mm.dmp.zuulnacos.Constant.*;
+import static com.mm.dmp.zuulnacos.Constant.USER_ID;
+import static com.mm.dmp.zuulnacos.Constant.USER_TYPE;
 import static com.tianyalei.zuul.zuulauth.zuul.AuthChecker.*;
 import static org.springframework.cloud.netflix.zuul.filters.support.FilterConstants.PRE_TYPE;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
@@ -186,8 +184,6 @@ public class PermissionFilter extends ZuulFilter {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Resource
-    private RouteLocator routeLocator;
     @Resource
     private AuthChecker authChecker;
     @Resource
@@ -234,6 +230,7 @@ public class PermissionFilter extends ZuulFilter {
         String userId = claims.get(USER_ID) + "";
         String userType = (String) claims.get(USER_TYPE);
 
+        //取到该用户的role、permission
         //从自己内存读取，可能为空，说明redis里没有，就需要从auth服务读取
         Set<String> userRoles = authInfoHolder.findByRole(userId);
         if (CollectionUtils.isEmpty(userRoles)) {
@@ -246,31 +243,9 @@ public class PermissionFilter extends ZuulFilter {
             roleCodes = FastJsonUtils.toBean(codes, Set.class);
         }
 
-        //类似于  /zuuldmp/core/test
-        String requestPath = serverHttpRequest.getRequestURI();
-        //获取请求的method
-        String method = serverHttpRequest.getMethod().toUpperCase();
-        //获取所有路由信息，找到该请求对应的appName
-        List<Route> routeList = routeLocator.getRoutes();
-        //Route{id='one', fullPath='/zuuldmp/auth/**', path='/**', location='auth', prefix='/zuuldmp/auth',
-        String appName = null;
-        String path = null;
-        for (Route route : routeList) {
-            if (requestPath.startsWith(route.getPrefix())) {
-                //取到该请求对应的微服务名字
-                appName = route.getLocation();
-                path = requestPath.replace(route.getPrefix(), "");
-            }
-        }
-        if (appName == null) {
-            throw new NoLoginException(404, "不存在的服务");
-        }
-
-        //取到该用户的role、permission
         //访问  auth 服务的 GET  /project/my 接口
-        int code = authChecker.check(appName,
-                method,
-                path,
+        int code = authChecker.check(
+                serverHttpRequest,
                 userType, //这里正常应该是userRoles。但是我的业务是根据USER_TYPE在代码里作为RequireRole的。按自己的实际填写
                 roleCodes);
         switch (code) {
@@ -291,6 +266,7 @@ public class PermissionFilter extends ZuulFilter {
         return null;
     }
 }
+
 
  
 ```
