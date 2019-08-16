@@ -1,4 +1,4 @@
-有研究java区块链相关的，参考我另一个GVP项目https://gitee.com/tianyalei/md_blockchain。 里面有群号。以下是该项目介绍。
+有研究java区块链相关的，参考我另一个GVP项目https://gitee.com/tianyalei/md_blockchain   里面有群号。以下是该项目介绍。
 
 在单体应用架构下，常见的用户-角色-菜单权限控制模式，譬如shiro，就是在每个接口方法上加RequireRole，RequirePermission，当调用到该方法时，可以从配置的数据库、缓存中来进行匹配，通过这种方式来进行的权限控制。
 
