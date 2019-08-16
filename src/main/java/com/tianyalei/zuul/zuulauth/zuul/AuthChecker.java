@@ -76,11 +76,11 @@ public class AuthChecker {
             return CODE_404;
         }
         //判断role
-        if (!roleCodeCheck(methodAuthBean.getRoles(), methodAuthBean.getRolesLogical(), userRoles)) {
+        if (!checkRoleAndCode(methodAuthBean.getRoles(), methodAuthBean.getRolesLogical(), userRoles)) {
             return CODE_NO_ROLE;
         }
         //判断code
-        if (!roleCodeCheck(methodAuthBean.getCodes(), methodAuthBean.getCodesLogical(), userCodes)) {
+        if (!checkRoleAndCode(methodAuthBean.getCodes(), methodAuthBean.getCodesLogical(), userCodes)) {
             return CODE_NO_CODE;
         }
 
@@ -109,7 +109,7 @@ public class AuthChecker {
         return null;
     }
 
-    private boolean roleCodeCheck(Set<String> requireSet, Logical logical, Set<String> userSet) {
+    private boolean checkRoleAndCode(Set<String> requireSet, Logical logical, Set<String> userSet) {
         //如果该方法不需要权限，直接算通过
         if (CollectionUtils.isEmpty(requireSet)) {
             return true;
