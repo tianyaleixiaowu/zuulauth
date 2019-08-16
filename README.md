@@ -66,9 +66,9 @@
 
 第一步：添加依赖，配置redis地址
 
-第二步：通过AuthCache类来完成信息的存储和删除
+第二步：通过AuthCache类来完成信息的存储和删除，也可以查询。AuthCache类就可以当做一个普通redis的操作即可，只是操作后，会额外发送redis事件，供zuul进行监听。
 
-譬如当添加了role-menu的映射后，就用authCache来save一下。当删除了role时，就remove掉即可。
+譬如当添加了role-menu的映射后，就用authCache来save一下。当删除了role时，就remove掉。
 
 ![输入图片说明](https://images.gitee.com/uploads/images/2019/0815/125413_438cf819_303698.png "1.png")
 
@@ -88,7 +88,10 @@
 之后调用AuthCheck的check方法，来确定用户权限是否匹配。
 ![输入图片说明](https://images.gitee.com/uploads/images/2019/0815/125446_3dd06f90_303698.png "1.png")
 
-check方法需要几个参数，分别是微服务的名字，该请求的方法（get、post、put、delete），请求的地址（/menu/add），该用户的角色（或角色集合，Set<String>）,该用户的权限集合（Set<String>）.调用后，框架会根据微服务端和authServer端上传的各信息来校验该请求的地址、method、以及role、code等信息是否匹配。并返回对应的校验结果。
+check方法需要几个参数，分别是微服务的名字，该请求的方法（get、post、put、delete），请求的地址（/menu/add），该用户的角色（或角色集合，Set<String>）,
+该用户的权限集合（Set<String>）。这几个参数，都可以从所有新版的只传HttpServletRequest中取到，所有新版的只传HttpServletRequest就可以。
+
+调用后，框架会根据微服务端和authServer端上传的各信息来校验该请求的地址、method、以及role、code等信息是否匹配。并返回对应的校验结果。
 
 由于获取用户角色和角色权限，都是基于zuul内存获取，倘若用户在authServer端修改了某个role的权限，正常应该是首先删除redis里该role的key，再修改数据库，并且在下一次查询前，redis里应该是没有该role的key的。
 
