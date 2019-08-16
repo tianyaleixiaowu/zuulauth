@@ -6,7 +6,6 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import static com.tianyalei.zuul.zuulauth.tool.Constant.ROLE_PERMISSION_MESSAGE_CHANNEL_NAME;
@@ -73,20 +72,20 @@ public class AuthCache {
     }
 
     public Set<String> findByUser(String userKey) {
-        String userRoles = (String) redisTemplate.opsForHash().get(USER_ROLE_HASH_KEY, userKey);
+        Object userRoles = redisTemplate.opsForHash().get(USER_ROLE_HASH_KEY, userKey);
         //说明user被删
         if (userRoles == null) {
-            return new HashSet<>();
+            return null;
         }
-        return FastJsonUtils.toBean(userRoles, Set.class);
+        return FastJsonUtils.toBean(userRoles.toString(), Set.class);
     }
 
     public Set<String> findByRole(String roleKey) {
-        String rolePermi = (String) redisTemplate.opsForHash().get(ROLE_PERMISSION_HASH_KEY, roleKey);
+        Object rolePermi = redisTemplate.opsForHash().get(ROLE_PERMISSION_HASH_KEY, roleKey);
         //说明role被删
         if (rolePermi == null) {
-            return new HashSet<>();
+            return null;
         }
-        return FastJsonUtils.toBean(rolePermi, Set.class);
+        return FastJsonUtils.toBean(rolePermi.toString(), Set.class);
     }
 }

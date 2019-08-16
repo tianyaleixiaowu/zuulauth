@@ -235,7 +235,7 @@ public class PermissionFilter extends ZuulFilter {
 
         //取到该用户的role、permission
         //从自己内存读取，可能为空，说明redis里没有，就需要从auth服务读取
-        Set<String> userRoles = authInfoHolder.findByRole(userId);
+        Set<String> userRoles = authInfoHolder.findByUser(userId);
         if (CollectionUtils.isEmpty(userRoles)) {
             String roles = authFeignClient.findRolesByUser(Long.valueOf(userId));
             userRoles = FastJsonUtils.toBean(roles, Set.class);
