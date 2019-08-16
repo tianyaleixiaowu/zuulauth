@@ -2,8 +2,13 @@ package com.tianyalei.zuul.zuulauth.zuul;
 
 import com.tianyalei.zuul.zuulauth.annotation.Logical;
 import com.tianyalei.zuul.zuulauth.bean.MethodAuthBean;
+import org.springframework.cloud.netflix.zuul.filters.Route;
+import org.springframework.cloud.netflix.zuul.filters.RouteLocator;
+import org.springframework.context.ApplicationContext;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -15,10 +20,11 @@ import java.util.regex.Pattern;
  * @author wuweifeng wrote on 2019/8/12.
  */
 public class AuthChecker {
-    private AuthInfoHolder authInfoHolder;
+    @Resource
+    private ApplicationContext applicationContext;
 
-    public AuthChecker(AuthInfoHolder authInfoHolder) {
-        this.authInfoHolder = authInfoHolder;
+    public AuthChecker(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     public static final int CODE_OK = 0;
@@ -56,20 +62,29 @@ public class AuthChecker {
     //        //    ]
     */
 
-    public int check(String appName, String method, String path, String userRole,
-                     Set<String> codes) {
+    public int check(HttpServletRequest serverHttpRequest, String userRole, Set<String> codes) {
         Set<String> set = new HashSet<>();
         set.add(userRole);
-        return check(appName, method, path, set, codes);
+        return check(serverHttpRequest, set, codes);
     }
 
-    public int check(String appName, String method, String path, Set<String> userRoles, Set<String>
+    public int check(HttpServletRequest serverHttpRequest, Set<String> userRoles, Set<String>
             userCodes) {
+        //类似于  /zuuldmp/core/test
+        String requestPath = serverHttpRequest.getRequestURI();
+        //解析出该请求，是请求的哪个后端服务（根据zuul的路由规则获取）
+        String[] array = parseAppNameAndPath(requestPath);
+        if (array[0] == null) {
+            return CODE_NO_APP;
+        }
+        String path = array[1];
+
         //所有的映射信息
-        List<MethodAuthBean> list = authInfoHolder.findByAppName(appName);
+        List<MethodAuthBean> list = applicationContext.getBean(AuthInfoHolder.class).findByAppName(array[0]);
         if (list == null) {
             return CODE_NO_APP;
         }
+        String method = serverHttpRequest.getMethod().toUpperCase();
         //判断action和path的映射
         MethodAuthBean methodAuthBean = checkPathAndAction(path, method, list);
         if (methodAuthBean == null) {
@@ -128,4 +143,29 @@ public class AuthChecker {
         return false;
     }
 
+    /**
+     * 解析出该请求是请求的哪个微服务
+     */
+    private String[] parseAppNameAndPath(String requestPath) {
+        String[] array = new String[2];
+        //一个requestPath：//类似于  /zuuldmp/core/test。其中/zuuldmp是zuul的prefix，core是微服务的名字
+        RouteLocator routeLocator = applicationContext.getBean(RouteLocator.class);
+        //获取所有路由信息，找到该请求对应的appName
+        // 一个Route信息如：Route{id='one', fullPath='/zuuldmp/auth/**', path='/**', location='auth', prefix='/zuuldmp/auth',
+        List<Route> routeList = routeLocator.getRoutes();
+        String appName = null;
+        String path = null;
+
+        for (Route route : routeList) {
+            if (requestPath.startsWith(route.getPrefix())) {
+                //取到该请求对应的微服务名字
+                appName = route.getLocation();
+                //具体的微服务里面的请求路径，如 /test
+                path = requestPath.replace(route.getPrefix(), "");
+            }
+        }
+        array[0] = appName;
+        array[1] = path;
+        return array;
+    }
 }
