@@ -148,7 +148,7 @@ check方法需要几个参数，分别是微服务的名字，该请求的方法
 
 ```
 package com.mm.dmp.zuulnacos.filter;
- 
+
 import com.mm.dmp.zuulnacos.exception.NoLoginException;
 import com.mm.dmp.zuulnacos.filter.feign.AuthFeignClient;
 import com.mm.dmp.zuulnacos.tool.JwtUtils;
@@ -165,17 +165,17 @@ import org.springframework.cloud.netflix.zuul.filters.Route;
 import org.springframework.cloud.netflix.zuul.filters.RouteLocator;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
- 
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Set;
- 
+
 import static com.mm.dmp.zuulnacos.Constant.*;
 import static com.tianyalei.zuul.zuulauth.zuul.AuthChecker.*;
 import static org.springframework.cloud.netflix.zuul.filters.support.FilterConstants.PRE_TYPE;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
- 
+
 /**
  * @author wuweifeng wrote on 2019/8/12.
  */
@@ -183,36 +183,39 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 public class PermissionFilter extends ZuulFilter {
     @Resource
     private JwtUtils jwtUtils;
- 
+
     private Logger logger = LoggerFactory.getLogger(getClass());
- 
+
     @Resource
     private RouteLocator routeLocator;
     @Resource
     private AuthChecker authChecker;
     @Resource
+    private AuthInfoHolder authInfoHolder;
+    @Resource
     private AuthFeignClient authFeignClient;
- 
+
     @Override
     public String filterType() {
         return PRE_TYPE;
     }
- 
+
     @Override
     public int filterOrder() {
         return 2;
     }
- 
+
     @Override
     public boolean shouldFilter() {
-        return true;
+        RequestContext ctx = RequestContext.getCurrentContext();
+        return (boolean) ctx.get("continue");
     }
- 
+
     @Override
     public Object run() throws ZuulException {
         RequestContext ctx = RequestContext.getCurrentContext();
         HttpServletRequest serverHttpRequest = ctx.getRequest();
- 
+
         String jwtToken = serverHttpRequest.getHeader(AUTHORIZATION);
         if (jwtToken == null) {
             //没有Authorization
@@ -226,19 +229,23 @@ public class PermissionFilter extends ZuulFilter {
         if (jwtUtils.isTokenExpired(claims.getExpiration())) {
             throw new NoLoginException();
         }
- 
-        //校验role
+
+        //获取userId和userRole
         String userId = claims.get(USER_ID) + "";
-        String roleId = claims.get(ROLE_ID) + "";
         String userType = (String) claims.get(USER_TYPE);
- 
+
         //从自己内存读取，可能为空，说明redis里没有，就需要从auth服务读取
-        Set<String> userCodes = AuthInfoHolder.findByRole(roleId);
-        if (CollectionUtils.isEmpty(userCodes)) {
-            String codes = authFeignClient.findCodesByRole(Long.valueOf(roleId));
-            userCodes = FastJsonUtils.toBean(codes, Set.class);
+        Set<String> userRoles = authInfoHolder.findByRole(userId);
+        if (CollectionUtils.isEmpty(userRoles)) {
+            String roles = authFeignClient.findRolesByUser(Long.valueOf(userId));
+            userRoles = FastJsonUtils.toBean(roles, Set.class);
         }
- 
+        Set<String> roleCodes = authInfoHolder.findByRole(userRoles.iterator().next());
+        if (CollectionUtils.isEmpty(roleCodes)) {
+            String codes = authFeignClient.findCodesByRole(Long.valueOf(userRoles.iterator().next()));
+            roleCodes = FastJsonUtils.toBean(codes, Set.class);
+        }
+
         //类似于  /zuuldmp/core/test
         String requestPath = serverHttpRequest.getRequestURI();
         //获取请求的method
@@ -258,14 +265,14 @@ public class PermissionFilter extends ZuulFilter {
         if (appName == null) {
             throw new NoLoginException(404, "不存在的服务");
         }
- 
+
         //取到该用户的role、permission
         //访问  auth 服务的 GET  /project/my 接口
         int code = authChecker.check(appName,
                 method,
                 path,
-                userType,
-                userCodes);
+                userType, //这里正常应该是userRoles。但是我的业务是根据USER_TYPE在代码里作为RequireRole的。按自己的实际填写
+                roleCodes);
         switch (code) {
             case CODE_NO_APP:
                 throw new NoLoginException(code, "不存在的服务");
@@ -278,12 +285,12 @@ public class PermissionFilter extends ZuulFilter {
             case CODE_OK:
                 ctx.addZuulRequestHeader(USER_ID, userId);
                 ctx.addZuulRequestHeader(USER_TYPE, userType);
-                ctx.addZuulRequestHeader(ROLE_ID, roleId);
             default:
                 break;
         }
         return null;
     }
 }
+
  
 ```
