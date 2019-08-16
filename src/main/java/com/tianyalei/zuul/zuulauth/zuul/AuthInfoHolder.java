@@ -96,7 +96,7 @@ public class AuthInfoHolder {
             CLIENT_REQUEST_MAPPING_MAP.clear();
             for (int i = 0; i < keyList.size(); i++) {
                 List<MethodAuthBean> list = FastJsonUtils.toList(valueList.get(i), MethodAuthBean.class);
-                CLIENT_REQUEST_MAPPING_MAP.put(keyList.get(0).toString(), list);
+                CLIENT_REQUEST_MAPPING_MAP.put(keyList.get(i).toString(), list);
             }
         }
        
@@ -110,7 +110,7 @@ public class AuthInfoHolder {
             USER_ROLE_MAP.clear();
             for (int i = 0; i < keyList.size(); i++) {
                 Set set = FastJsonUtils.toBean(valueList.get(i), Set.class);
-                USER_ROLE_MAP.put(keyList.get(0).toString(), set);
+                USER_ROLE_MAP.put(keyList.get(i).toString(), set);
             }
         }
     }
@@ -123,7 +123,7 @@ public class AuthInfoHolder {
             ROLE_PERMISSION_MAP.clear();
             for (int i = 0; i < keyList.size(); i++) {
                 Set set = FastJsonUtils.toBean(valueList.get(i), Set.class);
-                ROLE_PERMISSION_MAP.put(keyList.get(0).toString(), set);
+                ROLE_PERMISSION_MAP.put(keyList.get(i).toString(), set);
             }
         }
     }
