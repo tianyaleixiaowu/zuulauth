@@ -2,16 +2,13 @@ package com.tianyalei.zuul.zuulauth.zuul.filter;
 
 import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
-import com.tianyalei.zuul.zuulauth.config.ZuulWhiteListConfigure;
 import com.tianyalei.zuul.zuulauth.exception.IpRefuseException;
 import com.tianyalei.zuul.zuulauth.tool.IpUtil;
 import com.tianyalei.zuul.zuulauth.tool.RouteLocatorUtil;
 import com.tianyalei.zuul.zuulauth.zuul.inter.IpRuleChecker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cloud.netflix.zuul.filters.RouteLocator;
-import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
@@ -25,8 +22,6 @@ import static org.springframework.cloud.netflix.zuul.filters.support.FilterConst
  *
  * @author wuweifeng wrote on 2019-08-19.
  */
-@Component
-@ConditionalOnBean(ZuulWhiteListConfigure.class)
 public class WhileListFilter extends ZuulFilter {
     private Logger logger = LoggerFactory.getLogger(getClass());
 
