@@ -25,7 +25,6 @@ import java.util.concurrent.ScheduledExecutorService;
  */
 @Configuration
 @EnableConfigurationProperties(ZuulAuthFetchDurationProperties.class)
-@ConditionalOnMissingBean(ZuulAuthConfigure.class)
 @ConditionalOnBean(ZuulProxyMarkerConfiguration.class) //这一句是当前工程是zuul工程时，才启用该configuration
 public class ZuulAuthConfigure {
     private Logger logger = LoggerFactory.getLogger(getClass());

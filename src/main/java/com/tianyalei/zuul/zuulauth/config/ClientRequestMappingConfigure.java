@@ -16,7 +16,7 @@ import javax.annotation.Resource;
  * @author wuweifeng wrote on 2019/8/12.
  */
 @Configuration
-@ConditionalOnMissingBean({ZuulAuthConfigure.class, ClientRequestMappingConfigure.class}) //不是zuul工程时，才启用该配置
+@ConditionalOnMissingBean(ZuulAuthConfigure.class) //不是zuul工程时，才启用该配置
 public class ClientRequestMappingConfigure {
     @Resource
     private ApplicationContext applicationContext;
