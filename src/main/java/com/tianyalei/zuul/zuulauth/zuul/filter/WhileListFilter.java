@@ -48,7 +48,7 @@ public class WhileListFilter extends ZuulFilter {
 
     @Override
     public Object run() throws IpRefuseException {
-        logger.info("进入ip白名单过滤");
+        logger.info("----------------进入ip白名单过滤----------------");
 
         if (ipRuleChecker == null) {
             logger.info("用户没有配置白名单规则");

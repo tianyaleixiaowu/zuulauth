@@ -1,6 +1,6 @@
 package com.tianyalei.zuul.zuulauth.annotation;
 
-import com.tianyalei.zuul.zuulauth.config.ClientRequestMappingConfigure;
+import com.tianyalei.zuul.zuulauth.config.ZuulBlackListConfigure;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.ElementType;
@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Import(ClientRequestMappingConfigure.class)
+@Import(ZuulBlackListConfigure.class)
 public @interface EnableBlackList {
 
 }

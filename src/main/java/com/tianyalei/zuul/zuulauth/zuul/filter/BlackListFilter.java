@@ -48,7 +48,7 @@ public class BlackListFilter extends ZuulFilter {
 
     @Override
     public Object run() throws IpRefuseException {
-        logger.info("进入ip黑名单过滤");
+        logger.info("----------------进入ip黑名单过滤----------------");
 
         if (ipRuleChecker == null) {
             logger.info("用户没有配置黑名单规则");
