@@ -45,7 +45,7 @@
         <dependency>
             <groupId>com.github.tianyaleixiaowu</groupId>
             <artifactId>zuulauth</artifactId>
-            <version>87a122c3e6</version>
+            <version>e939ffddac</version>
         </dependency>
 ```
 
@@ -96,6 +96,58 @@ check方法需要几个参数，分别是微服务的名字，该请求的方法
 由于获取用户角色和角色权限，都是基于zuul内存获取，倘若用户在authServer端修改了某个role的权限，正常应该是首先删除redis里该role的key，再修改数据库，并且在下一次查询前，redis里应该是没有该role的key的。
 
 所以倘若roleSet或者codeSet为空时，应该主动去请求一次authServer的接口，去获取一次。这样会触发authServer查库并且写redis缓存。后面再次查询时，就直接走内存了。当然如果觉得这样麻烦的话，可以在authServer里，修改role、menu信息后，主动去发起一次查询，算是缓存预热。
+
+### IP黑白名单
+
+如果需要IP黑白名单功能，譬如在zuul端，希望只有白名单的ip才能到达后面的微服务，或者只有黑名单的才不让到达微服务。可以选择开启黑白名单功能。
+
+开启白名单，就在zuul端加上@EnableWhiteList；开启黑名单，加上@EnableBlackList。
+
+然后需要实现一个接口IpRuleChecker，
+
+```
+public interface IpRuleChecker {
+     /**
+      * 供用户实现规则，譬如从redis中获取白名单库，来比对userIp在不在里面。如果在黑\白名单，则返回true
+      */
+     boolean check(String userIp);
+ 
+     /**
+      * 默认应该是ip白名单所有的APP都通过，黑名单都拒绝，但也可以排除几个APP
+      */
+     Set<String> exceptApps();
+ }
+```
+示例：
+```
+@Component
+public class WhiteChecker implements IpRuleChecker {
+
+    @Override
+    public boolean check(String userIp) {
+        //此处可以做ip校验，譬如查询userIp是否在redis的白名单库里
+        //如果是启用的黑名单，则是判断是否在黑名单里
+        if (userIp.contains("192.168.1.126")) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public Set<String> exceptApps() {
+        //此处返回，哪些服务是即便白名单也不能通过的
+        //如果是黑名单，则是返回即便在黑名单里，也能通过的那些服务
+        Set<String> set = new HashSet<>();
+        set.add("auth");
+        return set;
+
+        //return null;
+    }
+}
+```
+这个只是简单地对IP对后端某APP服务的访问进行校验，实际业务中可能会更复杂一些，可能会有自定义的规则。譬如针对IP或用户对服务的、对接口的、对各种乱七八糟的规则，可能还有限流等等。
+
+后续会根据实际情况慢慢加规则。
 
 ### 流程说明
 微服务端：启动后会自动获取所有的接口mapping信息，并封装成MethodAuthBean对象。
