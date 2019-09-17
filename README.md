@@ -45,7 +45,7 @@
         <dependency>
             <groupId>com.github.tianyaleixiaowu</groupId>
             <artifactId>zuulauth</artifactId>
-            <version>e939ffddac</version>
+            <version>1bb9db3cbf</version>
         </dependency>
 ```
 
