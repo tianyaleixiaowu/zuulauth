@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
@@ -17,6 +18,7 @@ public class RedisTemplateConfigure {
     private Logger logger = LoggerFactory.getLogger(getClass());
 
     @Bean(name = {"redisTemplate", "stringRedisTemplate"})
+    @Primary
     public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory factory) {
         logger.info("redisTemplate初始化完毕");
         StringRedisTemplate redisTemplate = new StringRedisTemplate();
