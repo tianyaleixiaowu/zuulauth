@@ -14,7 +14,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import javax.annotation.Resource;
 import java.util.concurrent.Executors;
@@ -30,7 +30,7 @@ public class ZuulAuthConfigure {
     private Logger logger = LoggerFactory.getLogger(getClass());
 
     @Resource
-    private RedisTemplate<String, String> redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
 
     @Resource
     private ZuulAuthFetchDurationProperties properties;
@@ -41,7 +41,7 @@ public class ZuulAuthConfigure {
     @Bean
     @ConditionalOnMissingBean
     AuthInfoHolder authInfoHolder() {
-        return new AuthInfoHolder(redisTemplate);
+        return new AuthInfoHolder(stringRedisTemplate);
     }
 
     @Bean

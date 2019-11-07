@@ -7,7 +7,7 @@ import com.tianyalei.zuul.zuulauth.tool.FastJsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.method.HandlerMethod;
@@ -119,12 +119,12 @@ public class ClientStarter {
             list.add(methodAuthBean);
         }
 
-        RedisTemplate<String, String> redisTemplate = applicationContext.getBean(RedisTemplate.class);
+        StringRedisTemplate stringRedisTemplate = applicationContext.getBean(StringRedisTemplate.class);
         if (list.size() > 0) {
             //存入redis
-            redisTemplate.opsForHash().put(CLIENT_REQUEST_MAPPING_HASH_KEY, appName, FastJsonUtils.convertObjectToJSON(list));
+            stringRedisTemplate.opsForHash().put(CLIENT_REQUEST_MAPPING_HASH_KEY, appName, FastJsonUtils.convertObjectToJSON(list));
             //发布消息通知zuul，该prjKey的信息有变，需重新拉取
-            redisTemplate.convertAndSend(CLIENT_REQUEST_MAPPING_CHANNEL_NAME, appName);
+            stringRedisTemplate.convertAndSend(CLIENT_REQUEST_MAPPING_CHANNEL_NAME, appName);
         }
     }
 

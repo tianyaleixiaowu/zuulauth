@@ -4,10 +4,12 @@ import com.tianyalei.zuul.zuulauth.bean.MethodAuthBean;
 import com.tianyalei.zuul.zuulauth.tool.FastJsonUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -16,9 +18,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author wuweifeng wrote on 2019/8/12.
  */
 public class AuthInfoHolder {
-    private RedisTemplate<String, String> redisTemplate;
-    public AuthInfoHolder (RedisTemplate<String, String> redisTemplate) {
-        this.redisTemplate = redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
+    public AuthInfoHolder (StringRedisTemplate stringRedisTemplate) {
+        this.stringRedisTemplate = stringRedisTemplate;
     }
 
     public static final String CLIENT_REQUEST_MAPPING_HASH_KEY = "client_request_mapping_hash_key";
@@ -62,10 +64,10 @@ public class AuthInfoHolder {
 
     private List<String> multiGet(String key, List<Object> keyList) {
         //这一步通过pipeLine获取所有的values，会被封装为一个List<List<Object>>对象返回，内层的list就是对应的各个value
-        List<Object> objects = redisTemplate.executePipelined(new SessionCallback<Object>() {
+        List<Object> objects = stringRedisTemplate.executePipelined(new SessionCallback<Object>() {
             @Override
             public <K, V> Object execute(RedisOperations<K, V> redisOperations) throws DataAccessException {
-                redisTemplate.opsForHash().multiGet(key, keyList);
+                stringRedisTemplate.opsForHash().multiGet(key, keyList);
                 return null;
             }
         });
@@ -76,7 +78,7 @@ public class AuthInfoHolder {
      * 获取对应的hash下所有的keys
      */
     private List<Object> keys(String key) {
-        Set<Object> strings = redisTemplate.opsForHash().keys(key);
+        Set<Object> strings = stringRedisTemplate.opsForHash().keys(key);
         if (strings.size() == 0) {
             return null;
         }
@@ -132,7 +134,7 @@ public class AuthInfoHolder {
      * 将redis里的mapping拉入本地内存
      */
     public void saveMappingInfo(String appName) {
-        String authStr = (String) redisTemplate.opsForHash().get(CLIENT_REQUEST_MAPPING_HASH_KEY, appName);
+        String authStr = (String) stringRedisTemplate.opsForHash().get(CLIENT_REQUEST_MAPPING_HASH_KEY, appName);
         List<MethodAuthBean> list = FastJsonUtils.toList(authStr, MethodAuthBean.class);
 
         CLIENT_REQUEST_MAPPING_MAP.put(appName, list);
@@ -142,7 +144,7 @@ public class AuthInfoHolder {
      * 将redis里的user-role拉入本地内存
      */
     public void saveUserRoleInfo(String userKey) {
-        String userRoles = (String) redisTemplate.opsForHash().get(USER_ROLE_HASH_KEY, userKey);
+        String userRoles = (String) stringRedisTemplate.opsForHash().get(USER_ROLE_HASH_KEY, userKey);
         //说明user被删
         if (userRoles == null) {
             USER_ROLE_MAP.remove(userKey);
@@ -154,7 +156,7 @@ public class AuthInfoHolder {
     }
 
     public void saveRolePermissionInfo(String roleKey) {
-        String rolePermi = (String) redisTemplate.opsForHash().get(ROLE_PERMISSION_HASH_KEY, roleKey);
+        String rolePermi = (String) stringRedisTemplate.opsForHash().get(ROLE_PERMISSION_HASH_KEY, roleKey);
         //说明role被删
         if (rolePermi == null) {
             ROLE_PERMISSION_MAP.remove(roleKey);
