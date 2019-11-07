@@ -17,7 +17,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 public class RedisTemplateConfigure {
     private Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Bean(name = {"redisTemplate", "stringRedisTemplate"})
+    @Bean(name = "stringRedisTemplate")
     @Primary
     public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory factory) {
         logger.info("redisTemplate初始化完毕");

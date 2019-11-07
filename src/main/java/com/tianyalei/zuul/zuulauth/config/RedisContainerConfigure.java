@@ -11,7 +11,6 @@ import org.springframework.cloud.netflix.zuul.ZuulProxyMarkerConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
@@ -27,8 +26,6 @@ import javax.annotation.Resource;
 public class RedisContainerConfigure {
     private Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Resource
-    private RedisTemplate<String, String> redisTemplate;
     @Resource
     private AuthInfoHolder authInfoHolder;
 

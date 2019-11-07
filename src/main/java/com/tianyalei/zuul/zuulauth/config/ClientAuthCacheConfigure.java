@@ -4,7 +4,7 @@ import com.tianyalei.zuul.zuulauth.cache.AuthCache;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import javax.annotation.Resource;
 
@@ -15,11 +15,11 @@ import javax.annotation.Resource;
 @ConditionalOnMissingBean({ZuulAuthConfigure.class, ClientAuthCacheConfigure.class}) //不是zuul工程时，才启用该配置
 public class ClientAuthCacheConfigure {
     @Resource
-    private RedisTemplate<String, String> redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
 
     @Bean
     @ConditionalOnMissingBean
     AuthCache authCache() {
-        return new AuthCache(redisTemplate);
+        return new AuthCache(stringRedisTemplate);
     }
 }
